@@ -13,5 +13,8 @@ var button = buttons.ActionButton({
 });
 
 function handleClick(state) {
-  tabs.open("https://www.mozilla.org/");
+
+//  var chromeWindow = viewFor(tabs.activeTab.window);
+  console.log(tabs.activeTab.url);
+
 }
