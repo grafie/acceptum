@@ -1,0 +1,15 @@
+{
+  "title": "acceptum",
+  "name": "acceptum",
+  "version": "0.0.1",
+  "description": "Quickly organize your recipts / web research, or anything you browse!",
+  "main": "index.js",
+  "author": "",
+  "engines": {
+    "firefox": ">=38.0a1"
+  },
+  "license": "MIT",
+  "keywords": [
+    "jetpack"
+  ]
+}
