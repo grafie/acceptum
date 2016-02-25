@@ -34,10 +34,10 @@ captureTab();
                                          { tmpPath: path + '.tmp' });
 */
 }
-
+// https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob
 const { getTabContentWindow, getActiveTab } = require('sdk/tabs/utils');
 const { getMostRecentBrowserWindow } = require('sdk/window/utils');
-
+// http://www.wikidevs.com/3164/firefox-addon-api-for-taking-screenshot
 function captureTab(tab=getActiveTab(getMostRecentBrowserWindow())) {
   let contentWindow = getTabContentWindow(tab);
   let { document } = contentWindow;
@@ -61,6 +61,7 @@ function captureTab(tab=getActiveTab(getMostRecentBrowserWindow())) {
   canvas = null;
 }
 
+// http://stackoverflow.com/questions/31502231/firefox-addon-expose-chrome-function-to-website
 function saveCanvas(canvas, name) {
     var path = OS.Path.join(OS.Constants.Path.desktopDir, name);
     return Task.spawn(function *() {
