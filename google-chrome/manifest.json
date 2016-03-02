@@ -1,0 +1,17 @@
+{
+  "manifest_version": 2,
+
+  "name": "Acceptum",
+  "description": "Quickly organize your recipts / web research, or anything you browse!",
+  "version": "0.0.1",
+
+  "browser_action": {
+    "default_icon": "icon.png",
+    "default_title": "Acceptum - Capture Page",
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "tabs",
+    "pageCapture"
+  ]
+}
