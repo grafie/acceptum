@@ -1,8 +1,10 @@
-var tabs = require("sdk/tabs");
-var buttons = require('sdk/ui/button/action');
+var sdkButtons = require('sdk/ui/button/action');
+var sdkConfig = require('sdk/simple-prefs');
+var sdkTabs = require("sdk/tabs");
+
 var utils = require('utils.js');
 
-var button = buttons.ActionButton({
+var button = sdkButtons.ActionButton({
     id: "mozilla-link",
     label: "Visit Mozilla",
     icon: {
@@ -15,7 +17,16 @@ var button = buttons.ActionButton({
 
 function handleClick(state) {
 
-//    var worker = tabs.activeTab.attach({
+    if (sdkConfig.prefs['pageCaptureSaveDirectory'] === undefined) {
+        var defaultDirectoryPath = utils.directoryPicker("Select the default directory for page captures");
+
+        if (defaultDirectoryPath === null) {
+            defaultDirectoryPath = utils.getDesktopPath('acceptum');
+        }
+        sdkConfig.prefs['pageCaptureSaveDirectory'] = defaultDirectoryPath;
+    }
+
+//    var worker = sdkTabs.activeTab.attach({
 //        contentScriptFile: './wrapper.js'
 //    });
 //
@@ -28,3 +39,5 @@ function handleClick(state) {
 
 //    utils.pickCapture();
 }
+
+//sdkConfig.prefs['somePreference']

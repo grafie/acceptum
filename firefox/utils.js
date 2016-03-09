@@ -5,13 +5,29 @@ const { getMostRecentBrowserWindow } = require('sdk/window/utils');
 
 Cu.importGlobalProperties(["crypto"]);
 
-function filePicker() {
+exports.getDesktopPath = function(defaultDirectory) {
+
+    var path = OS.Path.join(OS.Constants.Path.desktopDir, defaultDirectory);
+
+    OS.File.makeDir(
+        path,
+        {
+            ignoreExisting: true
+        }
+    ).catch(function (err) {
+        console.log('makeDir failed', err);
+    });
+
+    return path;
+};
+
+exports.directoryPicker = function(message) {
     const nsIFilePicker = Ci.nsIFilePicker;
     var path = null;
     var window = require("sdk/window/utils").getMostRecentBrowserWindow();
     var fp = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
 
-    fp.init(window, "Select a file", nsIFilePicker.modeOpen);
+    fp.init(window, message, nsIFilePicker.modeGetFolder);
     fp.appendFilters(nsIFilePicker.filterAll | nsIFilePicker.filterText);
 
     var rv = fp.show();
@@ -52,7 +68,6 @@ exports.captureActiveTab = function (height) {
 // http://stackoverflow.com/questions/31502231/firefox-addon-expose-chrome-function-to-website
 // https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/OSFile.jsm/OS.File_for_the_main_thread#Example_Save_Canvas_to_Disk
 exports.saveCanvas = function (canvas, path, password, saltLen, ivLen) {
-    var path = OS.Path.join(path); //  var path = OS.Path.join(OS.Constants.Path.desktopDir, name);
     var salty = crypto.getRandomValues(new Uint8Array(saltLen));
     var encoder = new TextEncoder("utf-8");
 
