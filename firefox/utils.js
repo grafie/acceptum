@@ -1,5 +1,7 @@
+var sdkPath = require('sdk/fs/path');
 const { Cc, Ci, Cu } = require('chrome');
-const {TextEncoder, OS} = Cu.import("resource://gre/modules/osfile.jsm", {});
+const file = require("sdk/io/file");
+const { TextEncoder, OS } = Cu.import("resource://gre/modules/osfile.jsm", {});
 const { getTabContentWindow, getActiveTab } = require('sdk/tabs/utils');
 const { getMostRecentBrowserWindow } = require('sdk/window/utils');
 
@@ -39,6 +41,24 @@ exports.directoryPicker = function(message) {
     return path;
 };
 
+function filePicker(message) {
+    const nsIFilePicker = Ci.nsIFilePicker;
+    var path = null;
+    var window = require("sdk/window/utils").getMostRecentBrowserWindow();
+    var fp = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+
+    fp.init(window, message, nsIFilePicker.modeOpen);
+    fp.appendFilters(nsIFilePicker.filterAll | nsIFilePicker.filterText);
+
+    var rv = fp.show();
+
+    if (rv == nsIFilePicker.returnOK || rv == nsIFilePicker.returnReplace) {
+        path = fp.file.path;
+    }
+
+    return path;
+};
+
 // http://www.wikidevs.com/3164/firefox-addon-api-for-taking-screenshot
 exports.captureActiveTab = function (height) {
     let tab = getActiveTab(getMostRecentBrowserWindow())
@@ -67,7 +87,12 @@ exports.captureActiveTab = function (height) {
 
 // http://stackoverflow.com/questions/31502231/firefox-addon-expose-chrome-function-to-website
 // https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/OSFile.jsm/OS.File_for_the_main_thread#Example_Save_Canvas_to_Disk
-exports.saveCanvas = function (canvas, path, password, saltLen, ivLen) {
+exports.saveCanvas = function (canvas, basepath, filename, password, saltLen, ivLen) {
+
+    var path = basepath + sdkPath.sep + filename;
+
+    file.mkpath(basepath);
+
     var salty = crypto.getRandomValues(new Uint8Array(saltLen));
     var encoder = new TextEncoder("utf-8");
 
@@ -128,18 +153,20 @@ exports.saveCanvas = function (canvas, path, password, saltLen, ivLen) {
     });
 };
 
-exports.pickCapture = function() {
-//    var path = filePicker();
+exports.pickPageCapture = function() {
+    var path = filePicker('Select a page capture to decrypt');
 
-    OS.File.read('/home/rhiza/test.png').then(
-//    OS.File.read(path).then(
-        function onSuccess(array) {
-            decrypt(array, '/home/rhiza/test.dec.png', 'secret', 16, 16);
-        },
-        function onReject(reason) {
-            console.error("Couldn't read from purls.txt:\n"+reason);
-        }
-    );
+    if (path !== null) {
+
+        OS.File.read(path).then(
+            function onSuccess(array) {
+                decrypt(array, path, 'secret', 16, 16);
+            },
+            function onReject(reason) {
+                console.error("Couldn't read from file: " + path + '::::' + reason);
+            }
+        );
+    }
 };
 
 function decrypt(buf, path, password, saltLen, ivLen) {
@@ -179,7 +206,7 @@ function decrypt(buf, path, password, saltLen, ivLen) {
                 key,
                 parts.data
             ).then(function (decrypted) {
-                OS.File.writeAtomic(path, new Uint8Array(decrypted));
+                OS.File.writeAtomic(path.replace('.enc', ''), new Uint8Array(decrypted));
             });
         });
     });

@@ -1,44 +1,47 @@
 {
-    "title": "acceptum",
-    "name": "acceptum",
-    "version": "0.0.1",
-    "description": "Quickly capture and automatically organize your recipts, your web research, or anything you browse!",
-    "main": "index.js",
-    "author": "Poe Rhiza",
-    "engines": {
-        "firefox": ">=38.0"
+  "title": "acceptum",
+  "name": "acceptum",
+  "version": "0.0.1",
+  "description": "Quickly capture and automatically organize your recipts, your web research, or anything you browse!",
+  "main": "index.js",
+  "author": "Poe Rhiza",
+  "engines": {
+    "firefox": ">=38.0"
+  },
+  "license": "MIT",
+  "keywords": [
+    "screen capture",
+    "save web page",
+    "snip web page",
+    "export png",
+    "recipt",
+    "save",
+    "image",
+    "organize"
+  ],
+  "preferences": [
+    {
+      "name": "encryptPageCapture",
+      "title": "Use Encryption",
+      "description": "Encrypt page captures.",
+      "type": "bool",
+      "value": true
     },
-    "license": "MIT",
-    "keywords": [
-        "screen capture",
-        "save web page",
-        "snip web page",
-        "export png",
-        "recipt",
-        "save",
-        "image",
-        "organize"
-    ],
-    "preferences": [
-        {
-            "name": "encryptPageCapture",
-            "title": "Use Encryption",
-            "description": "Encrypt page captures.",
-            "type": "bool",
-            "value": true
-    	},
-        {
-            "name": "usePasswordManager",
-            "title": "Use Password Manager",
-            "description": "Use password manager when encrypting page captures.",
-            "type": "bool",
-            "value": true
-    	},
-        {
-            "name": "pageCaptureSaveDirectory",
-            "title": "Page Capture Directory",
-            "description": "The directory under which to save all page captures.",
-            "type": "directory"
-    	}
-    ]
+    {
+      "name": "usePasswordManager",
+      "title": "Use Password Manager",
+      "description": "Use password manager when encrypting page captures.",
+      "type": "bool",
+      "value": true
+    },
+    {
+      "name": "pageCaptureSaveDirectory",
+      "title": "Page Capture Directory",
+      "description": "The directory under which to save all page captures.",
+      "type": "directory"
+    }
+  ],
+  "dependencies": {
+    "moment": "~2.12.0"
+  }
 }
