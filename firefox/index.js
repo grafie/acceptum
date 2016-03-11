@@ -25,7 +25,12 @@ var panel = sdkPanel.Panel({
 });
 
 panel.port.on('decrypt', function() {
-    utils.pickPageCapture();
+    var worker = sdkTabs.activeTab.attach({
+        contentScriptFile: './wrapper.js'
+    });
+
+    worker.port.emit('getPassword');
+    worker.port.on('password', utils.pickPageCapture);
 });
 
 var btn = MenuButton({
@@ -52,6 +57,7 @@ var btn = MenuButton({
 
 function doPageCapture() {
     var defaultDirectoryPath = sdkConfig.prefs['pageCaptureSaveDirectory'];
+    var encryptPageCapture = sdkConfig.prefs['encryptPageCapture'];
 
     if (defaultDirectoryPath === undefined) {
         defaultDirectoryPath = utils.directoryPicker("Select the default directory for page captures");
@@ -67,21 +73,27 @@ function doPageCapture() {
     });
 
     worker.port.emit('getHeight');
-    
+
     worker.port.on('height', function(height) {
-        var canvas = utils.captureActiveTab(height);
 
         var filename = nmSlugifyURL(
             sdkTabs.activeTab.url,
             {
                 unixOnly: true
             }
-        ) + '.png' + ((sdkConfig.prefs['encryptPageCapture']) ? '.enc' : '');
+        ) + '.png' + ((encryptPageCapture) ? '.enc' : '');
 
         var today = nmMoment().format('YYYY' + sdkPath.sep + 'MM' + sdkPath.sep + 'DD');
         var path = defaultDirectoryPath + sdkPath.sep + today + sdkPath.sep;
 
-        utils.saveCanvas(canvas, path, filename, 'secret', 16, 16);
-    });
+        if (encryptPageCapture) {
+            worker.port.emit('getPassword');
 
+            worker.port.on('password', function(password) {
+                utils.saveCanvas(utils.captureActiveTab(height), path, filename, password, 16, 16);
+            });
+        } else {
+            utils.saveCanvas(utils.captureActiveTab(height), path, filename, null, 0, 0);
+        }
+    });
 }

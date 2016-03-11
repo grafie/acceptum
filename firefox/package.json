@@ -28,13 +28,6 @@
       "value": true
     },
     {
-      "name": "usePasswordManager",
-      "title": "Use Password Manager",
-      "description": "Use password manager when encrypting page captures.",
-      "type": "bool",
-      "value": true
-    },
-    {
       "name": "pageCaptureSaveDirectory",
       "title": "Page Capture Directory",
       "description": "The directory under which to save all page captures.",
@@ -42,6 +35,7 @@
     }
   ],
   "dependencies": {
-    "moment": "~2.12.0"
+    "moment": "~2.12.0",
+    "slugify-url": "~1.2.0"
   }
 }
