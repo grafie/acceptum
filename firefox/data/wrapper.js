@@ -7,3 +7,7 @@ self.port.on("getHeight", function() {
 
     self.port.emit('height', height);
 });
+
+self.port.on("getPassword", function() {
+    self.port.emit('password', window.prompt('Password for encrypting page capture?'));
+});

@@ -1,17 +1,38 @@
-const { Cc, Ci, Cu } = require('chrome');
-const {TextEncoder, OS} = Cu.import("resource://gre/modules/osfile.jsm", {});
+const sdkPath = require('sdk/fs/path');
+const file = require("sdk/io/file");
 const { getTabContentWindow, getActiveTab } = require('sdk/tabs/utils');
 const { getMostRecentBrowserWindow } = require('sdk/window/utils');
 
+const { Cc, Ci, Cu } = require('chrome');
+
+const { TextEncoder, OS } = Cu.import("resource://gre/modules/osfile.jsm", {});
+
+const nsIFilePicker = Ci.nsIFilePicker;
+
 Cu.importGlobalProperties(["crypto"]);
 
-function filePicker() {
-    const nsIFilePicker = Ci.nsIFilePicker;
+exports.getDesktopPath = function(defaultDirectory) {
+
+    var path = OS.Path.join(OS.Constants.Path.desktopDir, defaultDirectory);
+
+    OS.File.makeDir(
+        path,
+        {
+            ignoreExisting: true
+        }
+    ).catch(function (err) {
+        console.log('makeDir failed', err);
+    });
+
+    return path;
+};
+
+function picker(message, type) {
     var path = null;
     var window = require("sdk/window/utils").getMostRecentBrowserWindow();
     var fp = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
 
-    fp.init(window, "Select a file", nsIFilePicker.modeOpen);
+    fp.init(window, message, type);
     fp.appendFilters(nsIFilePicker.filterAll | nsIFilePicker.filterText);
 
     var rv = fp.show();
@@ -21,6 +42,14 @@ function filePicker() {
     }
 
     return path;
+}
+
+exports.directoryPicker = function(message) {
+    return picker(message, nsIFilePicker.modeGetFolder);
+};
+
+function filePicker(message) {
+    return picker(message, nsIFilePicker.modeOpen);
 };
 
 // http://www.wikidevs.com/3164/firefox-addon-api-for-taking-screenshot
@@ -51,80 +80,103 @@ exports.captureActiveTab = function (height) {
 
 // http://stackoverflow.com/questions/31502231/firefox-addon-expose-chrome-function-to-website
 // https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/OSFile.jsm/OS.File_for_the_main_thread#Example_Save_Canvas_to_Disk
-exports.saveCanvas = function (canvas, path, password, saltLen, ivLen) {
-    var path = OS.Path.join(path); //  var path = OS.Path.join(OS.Constants.Path.desktopDir, name);
+exports.saveCanvas = function (canvas, basepath, filename, mimeType, password, saltLen, ivLen) {
+
+    var path = basepath + sdkPath.sep + filename;
+
+    file.mkpath(basepath);
+
+    var reader = Cc['@mozilla.org/files/filereader;1'].createInstance(Ci.nsIDOMFileReader);
+
+    canvas.toBlob(
+        function (b) {
+            reader.readAsArrayBuffer(b);
+        },
+        mimeType,
+        1
+    );
+
+    reader.onloadend = function () {
+        var data = new Uint8Array(reader.result);
+
+        if (password !== null) {
+            encryptUint8Array(data, password, saltLen, ivLen).then(function(encryptedData) {
+                OS.File.writeAtomic(path, encryptedData);
+            }).catch(function(err) {
+                console.log(err);
+            });
+        } else {
+            OS.File.writeAtomic(path, data);
+        }
+    };
+};
+
+function encryptUint8Array(data, password, saltLen, ivLen) {
     var salty = crypto.getRandomValues(new Uint8Array(saltLen));
     var encoder = new TextEncoder("utf-8");
 
-    crypto.subtle.importKey(
-        "raw",
-        encoder.encode(password),
-        {"name": "PBKDF2"},
-        false,
-        ["deriveKey"]
-    ).then(function (baseKey) {
-
-        console.log('baseKey');
-
-        crypto.subtle.deriveKey(
-            {
-                "name": "PBKDF2",
-                salt: salty,
-                iterations: 1000,
-                hash: {name: "SHA-1"} //can be "SHA-1", "SHA-256", "SHA-384", or "SHA-512"
-            },
-            baseKey,
-            {
-                name: "AES-CBC", //can be any AES algorithm ("AES-CTR", "AES-CBC", "AES-CMAC", "AES-GCM", "AES-CFB", "AES-KW", "ECDH", "DH", or "HMAC")
-                length: 256 //can be  128, 192, or 256
-            },
+    return new Promise(function(resolve, reject) {
+        crypto.subtle.importKey(
+            "raw",
+            encoder.encode(password),
+            {"name": "PBKDF2"},
             false,
-            ["encrypt"]
-        ).then(function (key) {
-            //returns the derived key
-            console.log('key');
+            ["deriveKey"]
+        ).then(function (baseKey) {
 
-            var reader = Cc['@mozilla.org/files/filereader;1'].createInstance(Ci.nsIDOMFileReader);
+            crypto.subtle.deriveKey(
+                {
+                    "name": "PBKDF2",
+                    salt: salty,
+                    iterations: 1000,
+                    hash: {name: "SHA-1"} //can be "SHA-1", "SHA-256", "SHA-384", or "SHA-512"
+                },
+                baseKey,
+                {
+                    name: "AES-CBC", //can be any AES algorithm ("AES-CTR", "AES-CBC", "AES-CMAC", "AES-GCM", "AES-CFB", "AES-KW", "ECDH", "DH", or "HMAC")
+                    length: 256 //can be  128, 192, or 256
+                },
+                false,
+                ["encrypt"]
+            ).then(function (key) {
+                var initializationVector = crypto.getRandomValues(new Uint8Array(ivLen));
 
-            canvas.toBlob(function (b) {
-                reader.readAsArrayBuffer(b);
-            });
-
-            var initializationVector = crypto.getRandomValues(new Uint8Array(ivLen));
-
-            reader.onloadend = function () {
                 crypto.subtle.encrypt(
                     {
                         name: "AES-CBC",
                         iv: initializationVector
                     },
                     key,
-                    new Uint8Array(reader.result)
+                    data
                 ).then(function (encrypted) {
-                    OS.File.writeAtomic(path, joinSaltIvAndData(salty, initializationVector, new Uint8Array(encrypted)));
+                    resolve(joinSaltIvAndData(salty, initializationVector,  new Uint8Array(encrypted)));
                 })
                 .catch(function (err) {
-                    console.error(err);
+                    reject(err);
                 });
-            };
-        }).catch(function (err) {
-            console.error(err);
+            }).catch(function (err) {
+                reject(err);
+            });
+        }).catch(function(err) {
+            reject(err);
         });
     });
 };
 
-exports.pickCapture = function() {
-//    var path = filePicker();
+exports.pickPageCapture = function(password) {
+    var path = filePicker('Select a page capture to decrypt');
 
-    OS.File.read('/home/rhiza/test.png').then(
-//    OS.File.read(path).then(
-        function onSuccess(array) {
-            decrypt(array, '/home/rhiza/test.dec.png', 'secret', 16, 16);
-        },
-        function onReject(reason) {
-            console.error("Couldn't read from purls.txt:\n"+reason);
-        }
-    );
+    if (path !== null) {
+
+        OS.File.read(path).then(
+            function onSuccess(array) {
+                decrypt(array, path, password, 16, 16);
+            },
+            function onReject(reason) {
+                console.error("Couldn't read from file: " + path + '::::' + reason);
+            }
+        );
+    }
 };
 
 function decrypt(buf, path, password, saltLen, ivLen) {
@@ -164,7 +216,7 @@ function decrypt(buf, path, password, saltLen, ivLen) {
                 key,
                 parts.data
             ).then(function (decrypted) {
-                OS.File.writeAtomic(path, new Uint8Array(decrypted));
+                OS.File.writeAtomic(path.replace('.enc', ''), new Uint8Array(decrypted));
             });
         });
     });
