@@ -6,10 +6,12 @@ var sdkTabs = require("sdk/tabs");
 
 var nmMoment = require('moment');
 var nmSlugifyURL = require('slugify-url');
+var nm_ = require('lodash');
 
 const { MenuButton } = require('./lib/menu-button');
 
 var utils = require('utils.js');
+var package = require('package.json');
 
 var panel = sdkPanel.Panel({
     contentURL: "./panel-menu.html",
@@ -55,9 +57,16 @@ var btn = MenuButton({
     }
 });
 
+function getMimeType() { // find better way to get prefs?
+    var options = nm_.find(package.preferences, {'name': 'pageCaptureImageType'}).options;
+    var type = nm_.find(options, {'value': sdkConfig.prefs['pageCaptureImageType'].toString()});
+    return type.label;
+}
+
 function doPageCapture() {
     var defaultDirectoryPath = sdkConfig.prefs['pageCaptureSaveDirectory'];
     var encryptPageCapture = sdkConfig.prefs['encryptPageCapture'];
+    var mimeType = getMimeType();
 
     if (defaultDirectoryPath === undefined) {
         defaultDirectoryPath = utils.directoryPicker("Select the default directory for page captures");
@@ -81,7 +90,7 @@ function doPageCapture() {
             {
                 unixOnly: true
             }
-        ) + '.png' + ((encryptPageCapture) ? '.enc' : '');
+        ) + '.' + mimeType.split('/')[1] + ((encryptPageCapture) ? '.enc' : '');
 
         var today = nmMoment().format('YYYY' + sdkPath.sep + 'MM' + sdkPath.sep + 'DD');
         var path = defaultDirectoryPath + sdkPath.sep + today + sdkPath.sep;
@@ -90,10 +99,10 @@ function doPageCapture() {
             worker.port.emit('getPassword');
 
             worker.port.on('password', function(password) {
-                utils.saveCanvas(utils.captureActiveTab(height), path, filename, password, 16, 16);
+                utils.saveCanvas(utils.captureActiveTab(height), path, filename, mimeType, password, 16, 16);
             });
         } else {
-            utils.saveCanvas(utils.captureActiveTab(height), path, filename, null, 0, 0);
+            utils.saveCanvas(utils.captureActiveTab(height), path, filename, mimeType, null, 0, 0);
         }
     });
 }

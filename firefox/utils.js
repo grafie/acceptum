@@ -1,9 +1,13 @@
-var sdkPath = require('sdk/fs/path');
-const { Cc, Ci, Cu } = require('chrome');
+const sdkPath = require('sdk/fs/path');
 const file = require("sdk/io/file");
-const { TextEncoder, OS } = Cu.import("resource://gre/modules/osfile.jsm", {});
 const { getTabContentWindow, getActiveTab } = require('sdk/tabs/utils');
 const { getMostRecentBrowserWindow } = require('sdk/window/utils');
+
+const { Cc, Ci, Cu } = require('chrome');
+
+const { TextEncoder, OS } = Cu.import("resource://gre/modules/osfile.jsm", {});
+
+const nsIFilePicker = Ci.nsIFilePicker;
 
 Cu.importGlobalProperties(["crypto"]);
 
@@ -23,13 +27,12 @@ exports.getDesktopPath = function(defaultDirectory) {
     return path;
 };
 
-exports.directoryPicker = function(message) {
-    const nsIFilePicker = Ci.nsIFilePicker;
+function picker(message, type) {
     var path = null;
     var window = require("sdk/window/utils").getMostRecentBrowserWindow();
     var fp = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
 
-    fp.init(window, message, nsIFilePicker.modeGetFolder);
+    fp.init(window, message, type);
     fp.appendFilters(nsIFilePicker.filterAll | nsIFilePicker.filterText);
 
     var rv = fp.show();
@@ -39,24 +42,14 @@ exports.directoryPicker = function(message) {
     }
 
     return path;
+}
+
+exports.directoryPicker = function(message) {
+    return picker(message, nsIFilePicker.modeGetFolder);
 };
 
 function filePicker(message) {
-    const nsIFilePicker = Ci.nsIFilePicker;
-    var path = null;
-    var window = require("sdk/window/utils").getMostRecentBrowserWindow();
-    var fp = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
-
-    fp.init(window, message, nsIFilePicker.modeOpen);
-    fp.appendFilters(nsIFilePicker.filterAll | nsIFilePicker.filterText);
-
-    var rv = fp.show();
-
-    if (rv == nsIFilePicker.returnOK || rv == nsIFilePicker.returnReplace) {
-        path = fp.file.path;
-    }
-
-    return path;
+    return picker(message, nsIFilePicker.modeOpen);
 };
 
 // http://www.wikidevs.com/3164/firefox-addon-api-for-taking-screenshot
@@ -87,7 +80,7 @@ exports.captureActiveTab = function (height) {
 
 // http://stackoverflow.com/questions/31502231/firefox-addon-expose-chrome-function-to-website
 // https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/OSFile.jsm/OS.File_for_the_main_thread#Example_Save_Canvas_to_Disk
-exports.saveCanvas = function (canvas, basepath, filename, password, saltLen, ivLen) {
+exports.saveCanvas = function (canvas, basepath, filename, mimeType, password, saltLen, ivLen) {
 
     var path = basepath + sdkPath.sep + filename;
 
@@ -95,9 +88,13 @@ exports.saveCanvas = function (canvas, basepath, filename, password, saltLen, iv
 
     var reader = Cc['@mozilla.org/files/filereader;1'].createInstance(Ci.nsIDOMFileReader);
 
-    canvas.toBlob(function (b) {
-        reader.readAsArrayBuffer(b);
-    });
+    canvas.toBlob(
+        function (b) {
+            reader.readAsArrayBuffer(b);
+        },
+        mimeType,
+        1
+    );
 
     reader.onloadend = function () {
         var data = new Uint8Array(reader.result);
