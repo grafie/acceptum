@@ -1,7 +1,7 @@
 {
   "title": "acceptum",
   "name": "acceptum",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Quickly capture and automatically organize your recipts, your web research, or anything you browse!",
   "main": "index.js",
   "author": "Poe Rhiza",
@@ -9,7 +9,7 @@
     "firefox": ">=38.0"
   },
   "license": "MIT",
-  "updateURL": "https://github.com/grafie/acceptum/tree/master/firefox/dist/update.rdf",
+  "updateURL": "https://raw.githubusercontent.com/grafie/acceptum/master/firefox/dist/update.rdf",
   "keywords": [
     "screen capture",
     "save web page",
