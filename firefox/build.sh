@@ -3,7 +3,6 @@
 # https://raw.githubusercontent.com/chutten/statuser/gh-pages/build.sh
 # RUN THIS IN THE PROJECT ROOT FOLDER TO BUILD THE XPI
 
-rm dist/*.xpi
 jpm xpi
 NAME=$(echo @acceptum-*.xpi)
 mv "$NAME" "dist/${NAME//@}"
