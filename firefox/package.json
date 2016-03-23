@@ -9,6 +9,7 @@
     "firefox": ">=38.0"
   },
   "license": "MIT",
+  "updateURL": "https://github.com/grafie/acceptum/tree/master/firefox/dist/update.rdf",
   "keywords": [
     "screen capture",
     "save web page",

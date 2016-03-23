@@ -92,7 +92,7 @@ function doPageCapture() {
             }
         ) + '.' + mimeType.split('/')[1] + ((encryptPageCapture) ? '.enc' : '');
 
-        var today = nmMoment().format('YYYY' + sdkPath.sep + 'MM' + sdkPath.sep + 'DD');
+        var today = nmMoment().format('YYYY-MM-DD').replace('-', sdkPath.sep);
         var path = defaultDirectoryPath + sdkPath.sep + today + sdkPath.sep;
 
         if (encryptPageCapture) {
