@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- DO NOT EDIT - AUTOMATICALLY GENERATED FROM: ./dist/update.rdf.template -->
+<!-- DO NOT EDIT - AUTOMATICALLY GENERATED FROM: ../build.sh -->
 
 
 <RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -11,13 +11,13 @@
 
         <RDF:li>
           <RDF:Description>
-            <em:version>0.0.3</em:version>
+            <em:version>0.0.5</em:version>
             <em:targetApplication>
               <RDF:Description>
                 <em:id>{A4025392-F091-11E5-82AB-ACFDBA8E7F8B}</em:id>
                 <em:minVersion>38.0</em:minVersion>
                 <em:maxVersion>46.0</em:maxVersion>
-                <em:updateLink>https://github.com/grafie/acceptum/raw/master/firefox/dist/acceptum-0.0.3.xpi</em:updateLink>
+                <em:updateLink>https://github.com/grafie/acceptum/raw/master/firefox/dist/acceptum-0.0.5.xpi</em:updateLink>
               </RDF:Description>
             </em:targetApplication>
           </RDF:Description>

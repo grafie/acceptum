@@ -1,0 +1,64 @@
+{
+  "title": "acceptum",
+  "name": "acceptum",
+  "version": "0.0.5",
+  "description": "Quickly capture and automatically organize your recipts, your web research, or anything you browse!",
+  "main": "index.js",
+  "author": "Poe Rhiza",
+  "engines": {
+    "firefox": ">=38.0"
+  },
+  "license": "MIT",
+  "updateURL": "https://github.com/grafie/acceptum/tree/master/firefox/dist/update.rdf",
+  "keywords": [
+    "screen capture",
+    "save web page",
+    "snip web page",
+    "export png",
+    "recipt",
+    "save",
+    "image",
+    "organize"
+  ],
+  "preferences": [
+    {
+      "name": "encryptPageCapture",
+      "title": "Use Encryption",
+      "description": "Encrypt page captures.",
+      "type": "bool",
+      "value": true
+    },
+    {
+      "name": "pageCaptureSaveDirectory",
+      "title": "Page Capture Directory",
+      "description": "The directory under which to save all page captures.",
+      "type": "directory"
+    },
+    {
+      "name": "pageCaptureImageType",
+      "title": "Image Types",
+      "description": "What type of image data to save the page capture as.",
+      "type": "menulist",
+      "value": 0,
+      "options": [
+        {
+          "value": "0",
+          "label": "image/png"
+        },
+        {
+          "value": "1",
+          "label": "image/jpeg"
+        },
+        {
+          "value": "2",
+          "label": "image/webp"
+        }
+      ]
+    }
+  ],
+  "dependencies": {
+    "moment": "~2.12.0",
+    "slugify-url": "~1.2.0",
+    "lodash": "~4.6.1"
+  }
+}
