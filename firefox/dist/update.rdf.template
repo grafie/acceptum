@@ -15,7 +15,7 @@
                 <em:id>{A4025392-F091-11E5-82AB-ACFDBA8E7F8B}</em:id>
                 <em:minVersion>38.0</em:minVersion>
                 <em:maxVersion>46.0</em:maxVersion>
-                <em:updateLink>https://github.com/grafie/acceptum/raw/master/firefox/dist/acceptum-{{ VERSION }}.xpi</em:updateLink>
+                <em:updateLink>https://raw.githubusercontent.com/grafie/acceptum/master/firefox/dist/acceptum-{{ VERSION }}.xpi</em:updateLink>
               </RDF:Description>
             </em:targetApplication>
           </RDF:Description>
