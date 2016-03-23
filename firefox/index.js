@@ -88,7 +88,7 @@ function doPageCapture() {
         var filename = nmSlugifyURL(
             sdkTabs.activeTab.url,
             {
-                unixOnly: false
+                unixOnly: true
             }
         ) + '.' + mimeType.split('/')[1] + ((encryptPageCapture) ? '.enc' : '');
 
