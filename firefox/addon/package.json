@@ -1,8 +1,9 @@
 {
   "title": "acceptum",
   "name": "acceptum",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Quickly capture and automatically organize your recipts, your web research, or anything you browse!",
+  "icon": "resource://@acceptum/data/icon-64.png",
   "main": "index.js",
   "author": "Poe Rhiza",
   "engines": {
@@ -26,7 +27,7 @@
       "title": "Use Encryption",
       "description": "Encrypt page captures.",
       "type": "bool",
-      "value": true
+      "value": false
     },
     {
       "name": "pageCaptureSaveDirectory",

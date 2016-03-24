@@ -1,5 +1,7 @@
 const sdkPath = require('sdk/fs/path');
 const file = require("sdk/io/file");
+const notifications = require("sdk/notifications");
+
 const { getTabContentWindow, getActiveTab } = require('sdk/tabs/utils');
 const { getMostRecentBrowserWindow } = require('sdk/window/utils');
 
@@ -10,6 +12,8 @@ const { TextEncoder, OS } = Cu.import("resource://gre/modules/osfile.jsm", {});
 const nsIFilePicker = Ci.nsIFilePicker;
 
 Cu.importGlobalProperties(["crypto"]);
+
+Cu.import("resource://gre/modules/Promise.jsm");
 
 exports.getDesktopPath = function(defaultDirectory) {
 
@@ -82,6 +86,7 @@ exports.captureActiveTab = function (height) {
 // https://developer.mozilla.org/en-US/docs/Mozilla/JavaScript_code_modules/OSFile.jsm/OS.File_for_the_main_thread#Example_Save_Canvas_to_Disk
 exports.saveCanvas = function (canvas, basepath, filename, mimeType, password, saltLen, ivLen) {
 
+    var q = Promise.defer();
     var path = basepath + sdkPath.sep + filename;
 
     file.mkpath(basepath);
@@ -102,13 +107,17 @@ exports.saveCanvas = function (canvas, basepath, filename, mimeType, password, s
         if (password !== null) {
             encryptUint8Array(data, password, saltLen, ivLen).then(function(encryptedData) {
                 OS.File.writeAtomic(path, encryptedData);
+                q.resolve();
             }).catch(function(err) {
-                console.log(err);
+                q.reject(err);
             });
         } else {
             OS.File.writeAtomic(path, data);
+            q.resolve();
         }
     };
+
+    return q.promise;
 };
 
 function encryptUint8Array(data, password, saltLen, ivLen) {
@@ -177,6 +186,18 @@ exports.pickPageCapture = function(password) {
             }
         );
     }
+};
+
+exports.showCaptureStatus = function(status, iconPath, filepath, tab) {
+    notifications.notify({
+        title: "Acceptum Notification",
+        text: status,
+        iconURL: iconPath,
+        data: filepath,
+        onClick: function(data) {
+            tab.open('file://' + data);
+        }
+    });
 };
 
 function decrypt(buf, path, password, saltLen, ivLen) {

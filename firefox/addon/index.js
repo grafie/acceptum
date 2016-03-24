@@ -69,11 +69,7 @@ function doPageCapture() {
     var mimeType = getMimeType();
 
     if (defaultDirectoryPath === undefined) {
-        defaultDirectoryPath = utils.directoryPicker("Select the default directory for page captures");
-
-        if (defaultDirectoryPath === null) {
-            defaultDirectoryPath = utils.getDesktopPath('acceptum');
-        }
+        defaultDirectoryPath = utils.getDesktopPath('acceptum');
         sdkConfig.prefs['pageCaptureSaveDirectory'] = defaultDirectoryPath;
     }
 
@@ -92,17 +88,26 @@ function doPageCapture() {
             }
         ) + '.' + mimeType.split('/')[1] + ((encryptPageCapture) ? '.enc' : '');
 
-        var today = nmMoment().format('YYYY-MM-DD').replace('-', sdkPath.sep);
+        var today = nmMoment().format("YYYY-MM-DD".replace(/-/gi, sdkPath.sep));
         var path = defaultDirectoryPath + sdkPath.sep + today + sdkPath.sep;
+        var password = null;
+        var saveIt = function(password) {
+            // Icons from: https://github.com/google/material-design-icons/tree/master/image/2x_web
+            utils.saveCanvas(utils.captureActiveTab(height), path, filename, mimeType, password, 16, 16).then(function() {
+                utils.showCaptureStatus('Success! Click to view location.', './ic_image_black_48dp.png', path + filename, sdkTabs);
+            }).catch(function(e) {
+                utils.showCaptureStatus('Failure...Unable to capture page.', './ic_warning_black_48dp.png');
+            });
+        };
 
         if (encryptPageCapture) {
             worker.port.emit('getPassword');
 
             worker.port.on('password', function(password) {
-                utils.saveCanvas(utils.captureActiveTab(height), path, filename, mimeType, password, 16, 16);
+                saveIt(password);
             });
         } else {
-            utils.saveCanvas(utils.captureActiveTab(height), path, filename, mimeType, null, 0, 0);
+            saveIt(password);
         }
     });
 }
