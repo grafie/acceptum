@@ -36,8 +36,8 @@ panel.port.on('decrypt', function() {
 });
 
 var btn = MenuButton({
-    id: 'my-menu-button',
-    label: 'My menu-button',
+    id: 'capture-webpage-button',
+    label: 'Capture Webpage',
     icon: {
         "16": "./icon-16.png",
         "32": "./icon-32.png",
@@ -88,7 +88,7 @@ function doPageCapture() {
             }
         ) + '.' + mimeType.split('/')[1] + ((encryptPageCapture) ? '.enc' : '');
 
-        var today = nmMoment().format("YYYY-MM-DD".replace(/-/gi, sdkPath.sep));
+        var today = nmMoment().format("YYYY-MM-DD".replace(/-/g, sdkPath.sep));
         var path = defaultDirectoryPath + sdkPath.sep + today + sdkPath.sep;
         var password = null;
         var saveIt = function(password) {

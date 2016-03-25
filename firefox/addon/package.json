@@ -1,7 +1,7 @@
 {
   "title": "acceptum",
   "name": "acceptum",
-  "version": "0.0.8",
+  "version": "0.1.0",
   "description": "Quickly capture and automatically organize your recipts, your web research, or anything you browse!",
   "icon": "resource://@acceptum/data/icon-64.png",
   "main": "index.js",
