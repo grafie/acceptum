@@ -91,7 +91,9 @@ exports.saveCanvas = function (canvas, basepath, filename, mimeType, password, s
 
     file.mkpath(basepath);
 
-    var reader = Cc['@mozilla.org/files/filereader;1'].createInstance(Ci.nsIDOMFileReader);
+    let tab = getActiveTab(getMostRecentBrowserWindow())
+    let contentWindow = getTabContentWindow(tab);
+    var reader = new contentWindow.FileReader();
 
     canvas.toBlob(
         function (b) {
