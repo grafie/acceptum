@@ -6,10 +6,28 @@
   window.acceptumCSInjected = true;
 
   function getWindowAsCanvasDataURL() {
-    let w = window.outerWidth;
-    let h = window.outerHeight;
     let x = 0;
     let y = 0;
+
+    let body = document.body;
+    let html = document.documentElement;
+
+    let h = Math.max(//https://stackoverflow.com/questions/1145850/how-to-get-height-of-entire-document-with-javascript
+      window.outerHeight,
+      body.scrollHeight,
+      body.offsetHeight,
+      html.clientHeight,
+      html.scrollHeight,
+      html.offsetHeight
+    );
+    let w = Math.max(
+      window.outerWidth,
+      body.scrollWidth,
+      body.offsetWidth,
+      html.clientWidth,
+      html.scrollWidth,
+      html.offsetWidth
+    );
 
     let canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
 
@@ -26,6 +44,6 @@
   }
 
   browser.runtime.onMessage.addListener((message) => {
-    browser.runtime.sendMessage({"data": getWindowAsCanvasDataURL(), "command": message.command});
+    browser.runtime.sendMessage({"data": getWindowAsCanvasDataURL(), "settings": message.settings});
   });
 })();
