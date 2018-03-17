@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <style>
+    div {
+      width: 80%;
+      float: left;
+      clear: both;
+      margin: 10px;
+      border-bottom: 1px solid #d7d7db;
+      padding-bottom: 4px;
+    }
+    label {
+      float: left;
+    }
+    input,select {
+      float: right;
+    }
+    button {
+      float:left;
+      clear:both;
+      margin-top:10px;
+    }
+  </style>
+</head>
+
+<body>
+  <form id="settings">
+    <label>Capture the full screen or only the visible area of the screen:</label>
+    <select id="captureAreaSetting">
+      <option value="full">Capture Full Screen</option>
+      <option value="visible">Capture Visible Screen Area</option>
+    </select>
+    <button type="submit">Save</button>
+  </form>
+  <script src="settings.js"></script>
+</body>
+
+</html>
