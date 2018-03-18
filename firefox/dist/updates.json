@@ -1,0 +1,12 @@
+{
+  "addons": {
+    "{88888888-4444-4444-4444-121212121212}": {
+      "updates": [
+        {
+          "version": "0.2.1",
+	  "update_link": "https://github.com/grafie/acceptum/raw/master/firefox/dist/acceptum-0.2.1.xpi"
+        }
+      ]
+    }
+  }
+}
