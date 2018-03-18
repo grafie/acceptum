@@ -1,3 +1,16 @@
+//https://github.com/ogt/slugify-url/
+function slugify(url) {
+	var sanitized = url.substr(0, url.indexOf('?') || url.length);
+  sanitized = sanitized.replace(/^[\w]+:\/\//, '');
+	sanitized = sanitized.replace(/[\w\-_\.]+(:[^@]+)?@/, '');
+	sanitized = sanitized.replace(/\//g, '!');
+  sanitized = sanitized.replace(/[<>:"/\\|?*]/g, '!');
+	sanitized = sanitized.replace(new RegExp('[!]{2,}','g'),'!');
+	sanitized = sanitized.replace(new RegExp('[!]$'),'');
+	sanitized = sanitized.substr(0, 64);
+	return sanitized;
+}
+
 // https://coolaj86.com/articles/webcrypto-encrypt-and-decrypt-with-aes/
 function joinSaltIvAndData(salt, iv, data) {
   var sl = salt.length;
@@ -17,30 +30,6 @@ function joinSaltIvAndData(salt, iv, data) {
   });
 
   return buf;
-};
-
-// https://coolaj86.com/articles/webcrypto-encrypt-and-decrypt-with-aes/
-function separateSaltIvFromData(buf, saltLen, ivLen) {
-  var sl = new Uint8Array(saltLen);
-  var iv = new Uint8Array(ivLen);
-  var data = new Uint8Array(buf.length - ivLen * 2);
-
-  Array.prototype.forEach.call(buf, function(byte, i) {
-
-    if (i < ivLen) {
-      sl[i] = byte;
-    } else if (i < ivLen * 2 && i >= ivLen) {
-      iv[i - ivLen] = byte;
-    } else {
-      data[i - ivLen * 2] = byte;
-    }
-  });
-
-  return {
-    salt: sl,
-    iv: iv,
-    data: data
-  };
 };
 
 function encryptUint8Array(data, password, saltLen, ivLen) {
@@ -70,11 +59,20 @@ function encryptUint8Array(data, password, saltLen, ivLen) {
         },
         false, ["encrypt"]
       ).then(function(key) {
-        var initializationVector = crypto.getRandomValues(new Uint8Array(ivLen));
+        const initializationVector = crypto.getRandomValues(new Uint8Array(ivLen));
+				const ad = "Saved by Acceptum";
+				const adBuf = new ArrayBuffer(ad.length);
+			  const bufView = new Uint8Array(adBuf);
 
-        crypto.subtle.encrypt({
+			  for (var i=0, strLen=ad.length; i<strLen; i++) {
+			    bufView[i] = ad.charCodeAt(i);
+			  }
+
+        crypto.subtle.encrypt({// https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt
               name: "AES-GCM",
-              iv: initializationVector
+              iv: initializationVector,
+							additionalData: adBuf,
+							tagLength: 128
             },
             key,
             data
@@ -93,66 +91,42 @@ function encryptUint8Array(data, password, saltLen, ivLen) {
   });
 };
 
-
-function decrypt(buf, password, saltLen, ivLen) {
-
-  return new Promise(function(resolve, reject) {
-    var parts = separateSaltIvFromData(buf, saltLen, ivLen);
-    var encoder = new TextEncoder("utf-8");
-
-    crypto.subtle.importKey(
-      "raw",
-      encoder.encode(password), {
-        "name": "PBKDF2"
-      },
-      false, ["deriveKey"]
-    ).then(function(baseKey) {
-
-      crypto.subtle.deriveKey({
-          "name": "PBKDF2",
-          salt: parts.salt,
-          iterations: 1000,
-          hash: {
-            name: "SHA-512"
-          } //can be "SHA-1", "SHA-256", "SHA-384", or "SHA-512"
-        },
-        baseKey, {
-          name: "AES-GCM", //can be any AES algorithm ("AES-CTR", "AES-CBC", "AES-CMAC", "AES-GCM", "AES-CFB", "AES-KW", "ECDH", "DH", or "HMAC")
-          length: 256 //can be  128, 192, or 256
-        },
-        false, ["decrypt"]
-      ).then(function(key) {
-        crypto.subtle.decrypt({
-            name: 'AES-GCM',
-            iv: parts.iv
-          },
-          key,
-          parts.data
-        ).then(function(decrypted) {
-          resolve(new Uint8Array(decrypted));
-        }).catch(function(err) {
-          reject(err);
-        });
-      }).catch(function(err) {
-        reject(err);
-      });
-    }).catch(function(err) {
-      reject(err);
-    });
+function notifyOfSuccess() {
+  browser.notifications.create({
+    type: "basic",
+    iconUrl: 'icons/check.png',
+    title: "Acceptum",
+    message: "Screencapture successfully downloaded!"
   });
-};
+}
 
-function downloadDataURL(dataURL) {
+function downloadDataURL(dataURL, filename) {
+  let d = new Date();
+  let filenamePreamble = d.getFullYear() + "_" + d.getMonth() + "_" + d.getDate()+ "_";
+
   browser.downloads.download({
     'url': dataURL,
     'incognito': true,
     'conflictAction': 'uniquify',
-    'filename': 'test.png'
-  }).then(function(downloadId) {
-    console.log(downloadId);
-  }).catch(function(err) {
-    console.log(err);
-  });
+    'filename': filenamePreamble + filename + '.png'
+  })
+    .then(notifyOfSuccess)
+    .catch(reportError);
+}
+
+function storeBlobInDatabase(blob, url) {
+  // TODO: implement?
+}
+
+function doStorage(blob, settings) {
+  switch (settings.storage) {
+    case "download":
+      downloadDataURL(window.URL.createObjectURL(blob), settings.url);
+      break;
+    case "database":
+      storeBlobInDatabase(blob, settings.url);
+      break;
+  }
 }
 
 function takeActionOnDataURL(data, settings) {
@@ -165,29 +139,36 @@ function takeActionOnDataURL(data, settings) {
   for (; i < rawImageData.length; i++) {
     rawData[i] = rawImageData.charCodeAt(i);
   }
-console.log(settings);
+
   if (settings.encrypt === "encrypt") {
     let password = document.querySelector('input#password').value;
+    document.querySelector('input#password').value = "";
 
     encryptUint8Array(rawData, password, 16, 16).then(function(encryptedData) {
-      decrypt(encryptedData, password, 16, 16).then(function(decryptedData) {
-        var blob = new Blob([decryptedData], {
+        var blob = new Blob([encryptedData], {
           type: 'image/png'
         });
-        downloadDataURL(window.URL.createObjectURL(blob));
-      });
+        doStorage(blob, settings);
     });
   } else {
     var blob = new Blob([ab], {
       type: 'image/png'
     });
-    downloadDataURL(window.URL.createObjectURL(blob));
+    doStorage(blob, settings);
   }
 }
 
 function reportError(error) {
-  console.error(`Could not save page: ${error}`);
-  //TODO: add user notifications
+
+	if (typeof(error) === 'string') {
+	  browser.notifications.create({
+	        type: "basic",
+	        title: "Error Occured",
+	        message: error
+	  });
+	} else {
+		console.log(error);
+	}
 }
 
 function listenForClicks() {
@@ -227,7 +208,8 @@ function listenForClicks() {
       let settings = {
         "area": document.querySelector('select#captureAreaSetting').value,
         "encrypt": document.querySelector('select#captureEncryptionSetting').value,
-        "storage": document.querySelector('select#captureStorageSetting').value
+        "storage": document.querySelector('select#captureStorageSetting').value,
+        "url": slugify(tabs[0].url)
       }
 
       browser.storage.local.set(settings)
@@ -241,7 +223,7 @@ function listenForClicks() {
       function(settings) {
         let areaSetting = settings.area || "full";
         let encryptSetting = settings.encrypt || "none";
-        let storageSetting = settings.storage || "database";
+        let storageSetting = settings.storage || "download";
         let encryptSettingElement = document.querySelector('select#captureEncryptionSetting');
 
         document.querySelector('select#captureAreaSetting').value = areaSetting;
@@ -261,7 +243,6 @@ function listenForClicks() {
             passwordInput.classList.add('hidden');
           }
         });
-
       }).catch(reportError);
   }).catch(reportError);
 }
