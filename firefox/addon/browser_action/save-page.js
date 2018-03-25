@@ -1,13 +1,13 @@
 //https://github.com/ogt/slugify-url/
 function slugify(url) {
-	var sanitized = url.substr(0, url.indexOf('?') || url.length);
+	var sanitized = url.substr(0, url.indexOf('?') === -1 ? url.length : url.indexOf('?'));
   sanitized = sanitized.replace(/^[\w]+:\/\//, '');
 	sanitized = sanitized.replace(/[\w\-_\.]+(:[^@]+)?@/, '');
 	sanitized = sanitized.replace(/\//g, '!');
   sanitized = sanitized.replace(/[<>:"/\\|?*]/g, '!');
 	sanitized = sanitized.replace(new RegExp('[!]{2,}','g'),'!');
 	sanitized = sanitized.replace(new RegExp('[!]$'),'');
-	sanitized = sanitized.substr(0, 64);
+	sanitized = sanitized.substr(0, 128);
 	return sanitized;
 }
 
@@ -162,9 +162,9 @@ function reportError(error) {
 
 	if (typeof(error) === 'string') {
 	  browser.notifications.create({
-	        type: "basic",
-	        title: "Error Occured",
-	        message: error
+      type: "basic",
+      title: "Error Occured",
+      message: error
 	  });
 	} else {
 		console.log(error);
@@ -248,10 +248,10 @@ function listenForClicks() {
 }
 
 browser.tabs.executeScript({
-    file: "/content_scripts/html-to-image.js"
-  })
-  .then(listenForClicks)
-  .catch(reportError);
+  file: "/content_scripts/html-to-image.js"
+})
+.then(listenForClicks)
+.catch(reportError);
 
 browser.runtime.onMessage.addListener(function(message) {
   takeActionOnDataURL(message.data, message.settings);

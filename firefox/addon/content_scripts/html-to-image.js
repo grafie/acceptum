@@ -38,7 +38,7 @@
 
     ctx.clearRect(x, y, w, h);
     ctx.save();
-    ctx.drawWindow(window, x, y, w, h, "rgb(255,255,255)");
+    ctx.drawWindow(window, x, y, w, h, "rgba(0,0,0,0)");
     ctx.restore();
     return canvas.toDataURL('image/png');
   }
