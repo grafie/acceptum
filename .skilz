@@ -1,0 +1,14 @@
+{
+  "description": "A firefox extension to capture and save webpages as PNGs with optional AES encryption (google chrome extension will save as web archive).",
+  "title": "acceptum",
+  "links": [
+    {
+      "title": "Download",
+      "href": "https://github.com/grafie/acceptum/tree/master/firefox/dist"
+    },
+    {
+      "title": "View Source",
+      "href": "https://github.com/grafie/acceptum"
+    }
+  ]
+}
