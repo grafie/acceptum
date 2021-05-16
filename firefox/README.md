@@ -1,0 +1,1 @@
+Deprecated as Firefox now supports the hot-key 'ctrl+shift+s' which implements this extensions functionality (minus encryption).
