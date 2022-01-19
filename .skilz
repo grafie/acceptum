@@ -1,4 +1,5 @@
 {
+  "branch": "master",
   "description": "A firefox extension to capture and save webpages as PNGs with optional AES encryption (google chrome extension will save as web archive).",
   "title": "acceptum",
   "links": [
